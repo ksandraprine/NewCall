@@ -1,57 +1,68 @@
-const canvas: any = document.getElementById('field'); 
-const this._ctx = this._canvas.getContext('2d');
-const this._cellX: number = 75;
-const this._cellY: number = 45;
-const cageSize: number = 10;
-const this._fieldWidht: number = this._cellX*this._cageSize;
-const this._fieldHeight: number = this._cellY*this._cageSize;
-let this._arrayYears: Array<Array<number>> = this._CreateArray(this._cellY+2,this._cellX+2);
-const this._yearCell: number = 5;
-const this._ColorCell: Array<String> = this._ColorCellArray('Sand', this._yearCell);
+class NewCell{
+    protected _canvas: any;
+    protected _start: any;
+    protected _generation: any;
+    protected _restart: any;
+    protected _pause: any;
+    protected _ctx: any;
+    protected _cellX: number;
+    protected _cellY: number;
+    protected _cageSize: number;
+    protected _fieldWidht: number;
+    protected _fieldHeight: number;
+    protected _arrayYears: Array<Array<number>>;
+    protected _yearCell: number;
+    protected _ColorCell: Array<String>;
+    protected _isIntervalStarted:boolean;
+    protected _cycle: HTMLElement;
+    protected _numberCycle: number;
+    protected _started:boolean;
+    protected _intervalTame: number;
 
-let this._isIntervalStarted:boolean = true;
-let this._cycle: HTMLElement = document.getElementById('count');
-let this._numberCycle: number = 0;
-let this._started:boolean = true;
-const this._intervalTame: number = 100;
-// interface Cell{
-//     habitat: String;
-//     yearsOfLive: number;
-//     arrayColors: Array<String>;
-// }
+constructor(){
+    this._canvas = document.getElementById('field'); 
+    this._canvas.addEventListener('click', this._onClickCanvas.bind(this));
+    this._start = document.getElementById('start'); 
+    this._start.addEventListener('click', this._StartGame.bind(this));
+    this._generation = document.getElementById('generation'); 
+    this._generation.addEventListener('click', this._RandomFilling.bind(this));
+    this._restart = document.getElementById('restart'); 
+    this._restart.addEventListener('click', this._RestartGame.bind(this));
+    this._pause = document.getElementById('pause'); 
+    this._pause.addEventListener('click', this._PauseGame.bind(this));
+    this._ctx = this._canvas.getContext('2d');
+    this._cellX = 75;
+    this._cellY = 45;
+    this._cageSize = 10;
+    this._fieldWidht = this._cellX*this._cageSize;
+    this._fieldHeight = this._cellY*this._cageSize;
+    this._arrayYears = this._CreateArray(this._cellY+2,this._cellX+2);
+    this._yearCell = 5;
+    this._ColorCell = this._ColorCellArray('Sand', this._yearCell);
+    this._isIntervalStarted = true;
+    this._cycle = document.getElementById('count');
+    this._numberCycle = 0;
+    this._started = true;
+    this._intervalTame = 100;
 
-// const sandCellArray: Array<String> = ColorCellArray('Sand', 6); //для клеток, предрасположенных жить в песке
-// const sandCell: Cell = {
-//     habitat: 'Sand',
-//     yearsOfLive: 6,
-//     arrayColors: sandCellArray
-// };
-
-// const forestCellArray: Array<String> = ColorCellArray('', 5);
-// const forestCell: Cell = {
-//     habitat: 'Sand',
-//     yearsOfLive: 5,
-//     arrayColors: forestCellArray
-// };
-
-// const typeCell: Array<Cell> = [sandCell, sandCell]; 
-
-this._canvas.onclick = function(event) {
+}
+protected _onClickCanvas(event: any){
     const x = event.offsetX; 
     const y = event.offsetY;
+    console.log(Math.floor(y/this._cageSize)+1);
+    console.log(Math.floor(x/this._cageSize)+1);
     this._arrayYears[Math.floor(y/this._cageSize)+1][Math.floor(x/this._cageSize)+1] = 1;
     this._ctx.fillStyle = this._ColorCell[0];
     this._drawPoint(Math.floor(x/this._cageSize), Math.floor(y/this._cageSize));
 }
-
-function this._LifeCell(): Array<Array<number>>{
+protected _LifeCell(): Array<Array<number>>{
     let newArray: Array<Array<number>> = this._CreateArray(this._cellY+2,this._cellX+2);
     let counter: number;
     for (let i=1; i<this._arrayYears.length-1;i++){
         for(let j=1; j<this._arrayYears[i].length-1;j++){
             counter = this._Counter(i,j);
             if((this._arrayYears[i][j] === 0)&&(counter === 3)) newArray[i][j] = 1;
-            if((this._arrayYears[i][j] > 0)&&((counter>1)&&(counter<4))) {
+            if((this._arrayYears[i][j] > 0)&&((counter>1)&&(counter<5))) {
                 //for(let i: number=1; i < yearCell; i++){
                 newArray[i][j] = this._arrayYears[i][j] < this._yearCell ? this._arrayYears[i][j] += 1: 0;
                     //if(array[i][j] === i) newArray[i][j] = i+1;
@@ -62,7 +73,7 @@ function this._LifeCell(): Array<Array<number>>{
     }
    return newArray;
 }
-function this._drawField(): void{
+protected _drawField(): void{
     for (let i=1; i<this._arrayYears.length-1;i++){
         for(let j=1; j<this._arrayYears[i].length-1;j++){
             if(this._arrayYears[i][j] > 0){
@@ -73,10 +84,10 @@ function this._drawField(): void{
     }
 }
 
-function this._drawPoint(x: number, y: number):void {
-    ctx: this._ctx.fillRect(x*this._cageSize, y*this._cageSize, this._cageSize, this._cageSize);
+protected _drawPoint(x: number, y: number):void {
+    this._ctx.fillRect(x*this._cageSize, y*this._cageSize, this._cageSize, this._cageSize);
 }
-function StartGame(): void{
+protected _StartGame(): void{
 if(this._started){
     this._started = false;        
         this._isIntervalStarted = true;
@@ -94,14 +105,14 @@ if(this._started){
         }
     
 }
-function PauseGame():void{
+protected _PauseGame():void{
     this._isIntervalStarted = false;
     this._started = true;
 }
-function this._CreateArray(rows: number,columns: number): Array<Array<number>> {
-    let x = new Array(rows);
+protected _CreateArray(rows: number,columns: number): Array<Array<number>> {
+    let x: Array<Array<number>> = new Array(rows);
     for (let i = 0; i < rows; i++) {
-       let c = new Array(columns);
+       let c: Array<number> = new Array(columns);
        for(let i = 0; i<columns;i++){
            c[i] = 0;
        }
@@ -109,7 +120,7 @@ function this._CreateArray(rows: number,columns: number): Array<Array<number>> {
     }
     return x;
  }
-function RandomFilling(): void{
+protected _RandomFilling(): void{
      let r;
      let x;
      let y;
@@ -122,7 +133,7 @@ function RandomFilling(): void{
      }
  }
 
- function RestartGame(): void{
+ protected _RestartGame(): void{
     this._isIntervalStarted = false;
     this._ctx.clearRect(0, 0, this._fieldWidht, this._fieldHeight);
     this._arrayYears = this._CreateArray(this._cellY+2,this._cellX+2);
@@ -130,21 +141,21 @@ function RandomFilling(): void{
     this._started = true;
     this._cycle.textContent = this._numberCycle.toString();
 }
-function this._ColorCellArray(habitat: String, this._yearCell: number): Array<String>{
-    let arr: Array<String> = new Array(this._yearCell);
-    const step: number = Math.floor(255/ this._yearCell)-30;
+protected _ColorCellArray(habitat: String, yearCell: number): Array<String>{
+    let arr: Array<String> = new Array(yearCell);
+    const step: number = Math.floor(255/ yearCell)-30;
     let color = 255;
     for(let i: number = 0; i<yearCell; i++){
         if(habitat === 'Sand'){
-        arr[i] = `#0000${color.toString(16).toUpperCase()}`;
+        arr[i] = `#00${color.toString(16).toUpperCase()}00`;
         color -= step;
         }
     }
     return arr;
 }
-function this._Counter(i: number, j: number): number{
+protected _Counter(i: number, j: number): number{
     let count = 0;
-    if (this._arrayYears[i-1][j-1]) count += 1;
+    if (this._arrayYears[i-1][j-1]) count += 1; //и тип
     if (this._arrayYears[i-1][j]) count += 1;
     if (this._arrayYears[i-1][j+1]) count += 1;
     if (this._arrayYears[i][j+1]) count += 1;
@@ -153,4 +164,13 @@ function this._Counter(i: number, j: number): number{
     if (this._arrayYears[i+1][j-1]) count += 1;
     if (this._arrayYears[i][j-1]) count += 1;
     return count;
+}
+}
+
+const newCell = new NewCell();
+
+class Cell{
+    habitat: String;
+        yearsOfLive: number;
+        arrayColors: Array<String>;
 }

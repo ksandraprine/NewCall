@@ -2,6 +2,7 @@
     width: 750px;
     height: 450px;
     border: 2px solid black;
+    border-radius: 25% 10%;
     background-color: aquamarine;
     margin: 20px;  
 }
