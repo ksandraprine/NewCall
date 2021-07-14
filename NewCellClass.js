@@ -1,5 +1,7 @@
 class NewCell {
     constructor() {
+        this._biomSelect = document.getElementById('select');
+        this._biomSelect.addEventListener('click', this._onClickSelectBiom.bind(this));
         this._canvas = document.getElementById('field');
         this._canvas.addEventListener('click', this._onClickCanvas.bind(this));
         this._start = document.getElementById('start');
@@ -17,38 +19,66 @@ class NewCell {
         this._fieldWidht = this._cellX * this._cageSize;
         this._fieldHeight = this._cellY * this._cageSize;
         this._arrayYears = this._CreateArray(this._cellY + 2, this._cellX + 2);
-        this._yearCell = 5;
-        this._ColorCell = this._ColorCellArray('Sand', this._yearCell);
         this._isIntervalStarted = true;
         this._cycle = document.getElementById('count');
         this._numberCycle = 0;
         this._started = true;
-        this._intervalTame = 100;
+        this._intervalTame = 200;
+        this._type = ["Sand", "Forest", "Ocean"];
+        this._old = [10, 8, 6]; //для песка
+        this._numberBiom = 0; //для песка
+        this._counter = 0;
+        this._hibbitatCounter = 0;
+    }
+    _onClickSelectBiom() {
+        this._biom = this._biomSelect.value;
+        if (this._biom === this._type[0]) {
+            this._old = [10, 8, 6]; //для песка
+            this._numberBiom = 0; //для песка
+            this._canvas.style.backgroundColor = 'burlywood';
+        }
+        if (this._biom === this._type[1]) {
+            this._old = [8, 10, 8]; //для леса
+            this._numberBiom = 1; //для леса
+            this._canvas.style.backgroundColor = 'lightgreen';
+        }
+        if (this._biom === this._type[2]) {
+            this._old = [5, 7, 10]; //для воды
+            this._numberBiom = 2; //для воды
+            this._canvas.style.backgroundColor = 'lightskyblue';
+        }
     }
     _onClickCanvas(event) {
         const x = event.offsetX;
         const y = event.offsetY;
-        console.log(Math.floor(y / this._cageSize) + 1);
-        console.log(Math.floor(x / this._cageSize) + 1);
-        this._arrayYears[Math.floor(y / this._cageSize) + 1][Math.floor(x / this._cageSize) + 1] = 1;
-        this._ctx.fillStyle = this._ColorCell[0];
+        this._randomCell = Math.floor(Math.random() * this._type.length);
+        this._arrayYears[Math.floor(y / this._cageSize) + 1][Math.floor(x / this._cageSize) + 1] = new Cell(this._type[this._randomCell], this._old[this._randomCell]);
+        this._ctx.fillStyle = this._arrayYears[Math.floor(y / this._cageSize) + 1][Math.floor(x / this._cageSize) + 1].getArrayColors()[0];
         this._drawPoint(Math.floor(x / this._cageSize), Math.floor(y / this._cageSize));
     }
     _LifeCell() {
         let newArray = this._CreateArray(this._cellY + 2, this._cellX + 2);
-        let counter;
         for (let i = 1; i < this._arrayYears.length - 1; i++) {
             for (let j = 1; j < this._arrayYears[i].length - 1; j++) {
-                counter = this._Counter(i, j);
-                if ((this._arrayYears[i][j] === 0) && (counter === 3))
-                    newArray[i][j] = 1;
-                if ((this._arrayYears[i][j] > 0) && ((counter > 1) && (counter < 5))) {
-                    //for(let i: number=1; i < yearCell; i++){
-                    newArray[i][j] = this._arrayYears[i][j] < this._yearCell ? this._arrayYears[i][j] += 1 : 0;
-                    //if(array[i][j] === i) newArray[i][j] = i+1;
-                    //} 
-                    //if(array[i][j] === yearCell) newArray[i][j] = 0;
+                this._Counter(i, j);
+                if ((this._arrayYears[i][j] === undefined) && (this._counter === 3)) {
+                    if (this._hibbitatCounter > 1)
+                        newArray[i][j] = new Cell(this._type[this._numberBiom], this._old[this._numberBiom]);
+                    else {
+                        this._randomCell = Math.floor(Math.random() * this._type.length);
+                        newArray[i][j] = new Cell(this._type[this._randomCell], this._old[this._randomCell]);
+                    }
                 }
+                if ((this._arrayYears[i][j]) && ((this._counter > 1) && (this._counter < 4))) {
+                    if (this._arrayYears[i][j].years < this._arrayYears[i][j].yearsOfLive) {
+                        this._arrayYears[i][j].years += 1;
+                        newArray[i][j] = this._arrayYears[i][j];
+                    }
+                    else
+                        newArray[i][j] = undefined;
+                }
+                this._counter = 0;
+                this._hibbitatCounter = 0;
             }
         }
         return newArray;
@@ -56,8 +86,8 @@ class NewCell {
     _drawField() {
         for (let i = 1; i < this._arrayYears.length - 1; i++) {
             for (let j = 1; j < this._arrayYears[i].length - 1; j++) {
-                if (this._arrayYears[i][j] > 0) {
-                    this._ctx.fillStyle = this._ColorCell[this._arrayYears[i][j] - 1];
+                if (this._arrayYears[i][j]) {
+                    this._ctx.fillStyle = this._arrayYears[i][j].getArrayColors()[this._arrayYears[i][j].years];
                     this._drawPoint(j - 1, i - 1);
                 }
             }
@@ -67,6 +97,9 @@ class NewCell {
         this._ctx.fillRect(x * this._cageSize, y * this._cageSize, this._cageSize, this._cageSize);
     }
     _StartGame() {
+        // let cell: Cell = new Cell('Ocean', 5);
+        // cell.yearsOfLive += 1;
+        // console.log(cell.getArrayColors().length);
         if (this._started) {
             this._started = false;
             this._isIntervalStarted = true;
@@ -92,21 +125,21 @@ class NewCell {
         for (let i = 0; i < rows; i++) {
             let c = new Array(columns);
             for (let i = 0; i < columns; i++) {
-                c[i] = 0;
+                c[i] = undefined;
             }
             x[i] = c;
         }
         return x;
     }
     _RandomFilling() {
-        let r;
         let x;
         let y;
         for (let i = 0; i < ((this._cellX * this._cellY) * 0.2); i++) { // заполняется до 20 процентов поля
             x = Math.floor(Math.random() * this._cellX);
             y = Math.floor(Math.random() * this._cellY);
-            this._arrayYears[y + 1][x + 1] = 1;
-            this._ctx.fillStyle = this._ColorCell[0];
+            this._randomCell = Math.floor(Math.random() * this._type.length);
+            this._arrayYears[y + 1][x + 1] = new Cell(this._type[this._randomCell], this._old[this._randomCell]);
+            this._ctx.fillStyle = this._arrayYears[y + 1][x + 1].getArrayColors()[0];
             this._drawPoint(x, y);
         }
     }
@@ -118,39 +151,84 @@ class NewCell {
         this._started = true;
         this._cycle.textContent = this._numberCycle.toString();
     }
-    _ColorCellArray(habitat, yearCell) {
-        let arr = new Array(yearCell);
-        const step = Math.floor(255 / yearCell) - 30;
-        let color = 255;
-        for (let i = 0; i < yearCell; i++) {
-            if (habitat === 'Sand') {
-                arr[i] = `#00${color.toString(16).toUpperCase()}00`;
-                color -= step;
-            }
-        }
-        return arr;
-    }
     _Counter(i, j) {
-        let count = 0;
-        if (this._arrayYears[i - 1][j - 1])
-            count += 1; //и тип
-        if (this._arrayYears[i - 1][j])
-            count += 1;
-        if (this._arrayYears[i - 1][j + 1])
-            count += 1;
-        if (this._arrayYears[i][j + 1])
-            count += 1;
-        if (this._arrayYears[i + 1][j + 1])
-            count += 1;
-        if (this._arrayYears[i + 1][j])
-            count += 1;
-        if (this._arrayYears[i + 1][j - 1])
-            count += 1;
-        if (this._arrayYears[i][j - 1])
-            count += 1;
-        return count;
+        if (this._arrayYears[i - 1][j - 1]) {
+            this._counter += 1;
+            if (this._arrayYears[i - 1][j - 1].getHabitat() === this._type[this._numberBiom])
+                this._hibbitatCounter += 1;
+        }
+        if (this._arrayYears[i - 1][j]) {
+            this._counter += 1;
+            if (this._type[this._numberBiom] === this._arrayYears[i - 1][j].getHabitat())
+                this._hibbitatCounter += 1;
+        }
+        if (this._arrayYears[i - 1][j + 1]) {
+            this._counter += 1;
+            if (this._type[this._numberBiom] === this._arrayYears[i - 1][j + 1].getHabitat())
+                this._hibbitatCounter += 1;
+        }
+        if (this._arrayYears[i][j + 1]) {
+            this._counter += 1;
+            if (this._type[this._numberBiom] === this._arrayYears[i][j + 1].getHabitat())
+                this._hibbitatCounter += 1;
+        }
+        if (this._arrayYears[i + 1][j + 1]) {
+            this._counter += 1;
+            if (this._type[this._numberBiom] === this._arrayYears[i + 1][j + 1].getHabitat())
+                this._hibbitatCounter += 1;
+        }
+        if (this._arrayYears[i + 1][j]) {
+            this._counter += 1;
+            if (this._type[this._numberBiom] === this._arrayYears[i + 1][j].getHabitat())
+                this._hibbitatCounter += 1;
+        }
+        if (this._arrayYears[i + 1][j - 1]) {
+            this._counter += 1;
+            if (this._type[this._numberBiom] === this._arrayYears[i + 1][j - 1].getHabitat())
+                this._hibbitatCounter += 1;
+        }
+        if (this._arrayYears[i][j - 1]) {
+            this._counter += 1;
+            if (this._type[this._numberBiom] === this._arrayYears[i][j - 1].getHabitat())
+                this._hibbitatCounter += 1;
+        }
     }
 }
 const newCell = new NewCell();
 class Cell {
+    constructor(habitat, yearsOfLive) {
+        this.yearsOfLive = yearsOfLive;
+        this._habitat = habitat;
+        this._ColorCellArray();
+        this.years = 0;
+    }
+    _ColorCellArray() {
+        this._arrayColors = new Array(this.yearsOfLive);
+        const step = Math.floor(255 / this.yearsOfLive);
+        let color = 255;
+        if (this._habitat === 'Sand') {
+            for (let i = 0; i < this.yearsOfLive; i++) {
+                this._arrayColors[i] = `#${color.toString(16).toUpperCase()}0000`;
+                color -= step;
+            }
+        }
+        if (this._habitat === 'Forest') {
+            for (let i = 0; i < this.yearsOfLive; i++) {
+                this._arrayColors[i] = `#00${color.toString(16).toUpperCase()}00`;
+                color -= step;
+            }
+        }
+        if (this._habitat === 'Ocean') {
+            for (let i = 0; i < this.yearsOfLive; i++) {
+                this._arrayColors[i] = `#0000${color.toString(16).toUpperCase()}`;
+                color -= step;
+            }
+        }
+    }
+    getArrayColors() {
+        return this._arrayColors;
+    }
+    getHabitat() {
+        return this._habitat;
+    }
 }

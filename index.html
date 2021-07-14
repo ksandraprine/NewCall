@@ -8,10 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<body align="center" style='background-color: #90ee90;'>
+<body align="center" style='background-color: #bcf3bc;'>
     <h1 class="text-center mt-5" style="font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;">Игра "ЖИЗНЬ"</h1>
     <canvas class='gameField' id="field" width="750" height="450"></canvas>
     <h4 style="font-family: Monotype Corsiva;">Циклов прошло: <span id="count">0</span></h4>
+    <span>Биом: </span>
+    <select id = 'select'>
+        <option value ='Sand'>Пустыня</option>
+        <option value = 'Forest'>Лес</option>
+        <option value = 'Ocean'>Океан</option>
+    </select>
     <button id="generation" class="btn btn-success">Заполнить поле</button>
     <button id="start" class="btn btn-success">Старт</button>
     <button id="pause" class="btn btn-success">Пауза</button>
